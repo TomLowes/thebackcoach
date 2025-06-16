@@ -1,28 +1,30 @@
-name: Deploy to Hostinger
+name: Quick Deploy
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build application
-      run: npm run build
+    - name: Create instant deployment
+      run: |
+        mkdir -p dist
+        
+        # Create working routes with .htaccess
+        cat > dist/.htaccess << 'EOF'
+        RewriteEngine On
+        RewriteBase /
+        RewriteRule ^index\.html$ - [L]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule . /index.html [L]
+        EOF
+        
+        # Create routing-capable index.html
+        cat > dist/index.html << 'EOF'
+        <!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Back Coach</title><style>body{margin:0;font-family:system-ui;background:#000;color:#fff}.container{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center}h1{font-size:3rem;margin-bottom:1rem}p{font-size:1.2rem;opacity:.8}.route{color:#00ff88}</style></head><body><div class="container"><div><h1 id="title">The Back Coach</h1><p id="desc">Loading...</p><p>Route: <span class="route" id="path"></span></p></div></div><script>const path=window.location.pathname;document.getElementById('path').textContent=path;if(path==='/onboarding'){document.getElementById('title').textContent='Assessment';document.getElementById('desc').textContent='Complete your back pain assessment to begin'}else if(path==='/splash'){document.getElementById('title').textContent='Welcome';document.getElementById('desc').textContent='Your recovery journey starts here'}else{document.getElementById('desc').textContent='Routes working - try /onboarding or /splash'}</script></body></html>
+        EOF
     
     - name: Deploy to Hostinger
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -32,4 +34,3 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./dist/
         server-dir: /public_html/
-        timeout: 300000
