@@ -1,4 +1,4 @@
-name: Add App Routes
+name: Deploy Routes
 
 on:
   workflow_dispatch:
@@ -9,37 +9,37 @@ jobs:
     steps:
     - name: Create route files
       run: |
-        mkdir -p routes
+        mkdir -p files
+        
+        # Test file to verify deployment
+        echo "GitHub deployment working - $(date)" > files/github-test.txt
         
         # Create onboarding.html
-        cat > routes/onboarding.html << 'EOF'
+        cat > files/onboarding.html << 'EOF'
         <!DOCTYPE html>
-        <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Assessment - The Back Coach</title><style>body{margin:0;font-family:system-ui;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center}.container{text-align:center;max-width:600px;padding:2rem}h1{font-size:3rem;margin-bottom:1rem;color:#16a34a}p{font-size:1.2rem;margin-bottom:2rem}.btn{background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:12px;font-size:1.1rem;cursor:pointer;text-decoration:none;display:inline-block}</style></head><body><div class="container"><h1>Assessment Ready!</h1><p>/onboarding route is working</p><a class="btn" href="https://thebackcoach--5000--f41e2e86-6b1e-4e60-b81f-ac2c5beee3fc.repl.co/onboarding">Continue to Full App</a></div></body></html>
+        <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Assessment - The Back Coach</title><style>body{margin:0;font-family:system-ui;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center}.container{text-align:center;max-width:600px;padding:2rem}h1{font-size:3rem;margin-bottom:1rem;color:#16a34a;font-weight:900}p{font-size:1.3rem;margin-bottom:2rem}.success{background:rgba(22,163,74,0.1);border:2px solid #16a34a;padding:1rem;border-radius:12px;margin:2rem 0}.btn{background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:12px;font-size:1.1rem;text-decoration:none;display:inline-block}</style></head><body><div class="container"><h1>Assessment Ready!</h1><div class="success"><p><strong>✅ /onboarding route working</strong></p></div><a class="btn" href="https://thebackcoach--5000--f41e2e86-6b1e-4e60-b81f-ac2c5beee3fc.repl.co/onboarding">Continue to App</a></div></body></html>
         EOF
         
-        # Create splash.html
-        cat > routes/splash.html << 'EOF'
+        # Create splash.html  
+        cat > files/splash.html << 'EOF'
         <!DOCTYPE html>
-        <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Welcome - The Back Coach</title><style>body{margin:0;font-family:system-ui;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center}.container{text-align:center;max-width:600px;padding:2rem}h1{font-size:3rem;margin-bottom:1rem;color:#16a34a}p{font-size:1.2rem;margin-bottom:2rem}.btn{background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:12px;font-size:1.1rem;cursor:pointer;text-decoration:none;display:inline-block}</style></head><body><div class="container"><h1>Welcome to The Back Coach!</h1><p>/splash route is working</p><a class="btn" href="https://thebackcoach--5000--f41e2e86-6b1e-4e60-b81f-ac2c5beee3fc.repl.co/splash">Continue to Full App</a></div></body></html>
+        <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Welcome - The Back Coach</title><style>body{margin:0;font-family:system-ui;background:#000;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center}.container{text-align:center;max-width:600px;padding:2rem}h1{font-size:3rem;margin-bottom:1rem;color:#16a34a;font-weight:900}p{font-size:1.3rem;margin-bottom:2rem}.success{background:rgba(22,163,74,0.1);border:2px solid #16a34a;padding:1rem;border-radius:12px;margin:2rem 0}.btn{background:#16a34a;color:#fff;padding:1rem 2rem;border:none;border-radius:12px;font-size:1.1rem;text-decoration:none;display:inline-block}</style></head><body><div class="container"><h1>Welcome to The Back Coach!</h1><div class="success"><p><strong>✅ /splash route working</strong></p></div><a class="btn" href="https://thebackcoach--5000--f41e2e86-6b1e-4e60-b81f-ac2c5beee3fc.repl.co/splash">Continue to App</a></div></body></html>
         EOF
         
-        # Create .htaccess addition
-        cat > routes/.htaccess << 'EOF'
+        # Create .htaccess for routing
+        cat > files/.htaccess << 'EOF'
         RewriteEngine On
         RewriteBase /
-        
-        # App routes
-        RewriteRule ^onboarding/?$ /onboarding.html [L]
-        RewriteRule ^splash/?$ /splash.html [L]
-        
-        # Existing rules preserved
+        RewriteRule ^onboarding/?$ onboarding.html [L]
+        RewriteRule ^splash/?$ splash.html [L]
         EOF
     
-    - name: Deploy routes only
+    - name: Deploy via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./routes/
+        local-dir: ./files/
         server-dir: /public_html/
+        security: loose
